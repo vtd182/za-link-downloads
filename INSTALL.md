@@ -14,6 +14,40 @@ For updates, extract a new kit, change the client path, restart the matching plu
 
 Skills are separate. No internal skills, hooks or agent account credentials are included. The bundled README covers runtime details. Check your organization's development-plugin permissions and normal OS software approval flow if installation is restricted.
 
+### Claude Code
+
+Install Claude Code and Node.js first. In the extracted `za-link` folder, register the local server for your user:
+
+macOS / Linux (zsh or bash):
+
+```sh
+claude mcp add --transport stdio --scope user za-link -- "$(node -p 'process.execPath')" "$(pwd)/runtime/bin/run.js"
+```
+
+Windows (PowerShell):
+
+```powershell
+claude mcp add --transport stdio --scope user za-link -- (node -p "process.execPath") "$((Get-Location).Path)\runtime\bin\run.js"
+```
+
+This writes an MCP registration, not a skill installation. If `za-link` already exists, inspect it with `claude mcp get za-link` and update the intended entry rather than adding a duplicate. Restart Claude Code and check `/mcp`. Keep the extracted directory in place. See [Claude Code's official MCP guide](https://code.claude.com/docs/en/mcp).
+
+### Claude Desktop
+
+Run `node setup.mjs`. Open Claude Desktop's **Settings → Developer → Edit Config**. Merge the printed `mcpServers.za-link` entry into the existing JSON, preserving other servers. Use the absolute `command` and `args` printed by setup. Fully quit and reopen Claude Desktop, then check that ZA Link's tools are available. See the [official local MCP guide](https://modelcontextprotocol.io/docs/develop/connect-local-servers).
+
+The kit is a local stdio server. Do not paste `127.0.0.1:1802` into a remote connector URL on claude.ai. That port is the plugin bridge, not a remote MCP endpoint. This ZIP is not a one-click `.mcpb` desktop extension.
+
+### Verify the connection
+
+Import and run the bundled Figma plugin (step 4), then ask Claude:
+
+> Check ZA Link health and connected Figma sessions. Tell me the file name, select that session and read my current selection. Do not change the design.
+
+`PLUGIN_NOT_CONNECTED` or zero sessions means the runtime is reachable but the Figma plugin is not connected yet. A successful download or setup command alone does not prove that Claude can read the design. General Figma tools work without internal skills; ZDS/Zinstant implementation workflows require the corresponding internal skill packs and project libraries.
+
+Public-kit validation: the downloaded macOS ARM64 kit was checked for archive/file hashes, setup JSON and a real stdio handshake/tool listing. This is not a fresh-account Claude UI acceptance test. Windows and Intel Mac GUI acceptance remain unverified.
+
 ## Tiếng Việt
 
 1. Tải ZIP đúng hệ điều hành và CPU tại [Releases](https://github.com/vtd182/za-link-downloads/releases), kiểm tra SHA256 rồi giải nén vào thư mục cố định.
@@ -22,3 +56,17 @@ Skills are separate. No internal skills, hooks or agent account credentials are 
 4. Nhờ agent kiểm tra health, liệt kê file và chọn đúng session trước khi đọc/sửa. Nếu khởi động lại plugin, chọn session mới.
 
 Bộ cài gồm runtime/plugin; skill nội bộ nhận qua kênh riêng của nhóm. Khi nâng cấp, dùng runtime và plugin cùng phiên bản, giữ bộ cài cũ để quay lại nếu cần.
+
+### Dùng với Claude
+
+- **Claude Code:** cần cài CLI và Node.js. Mở terminal trong thư mục `za-link`, chạy lệnh đúng hệ điều hành ở mục Claude Code bên trên. Lệnh đăng ký server cho tài khoản máy; mở lại Claude Code và kiểm tra `/mcp`. Nếu đã có `za-link`, kiểm tra cấu hình cũ trước khi cập nhật.
+- **Claude Desktop:** chạy `node setup.mjs`, vào **Settings → Developer → Edit Config**, gộp mục `mcpServers.za-link` vào JSON và giữ nguyên server khác. Thoát hẳn rồi mở lại ứng dụng.
+- **Claude trên web:** không dán `127.0.0.1:1802` làm URL connector. Đây là cổng bridge của plugin; bộ cài dùng MCP stdio local, chưa phải extension `.mcpb` cài một lần bấm.
+
+Sau khi import và chạy plugin trong Figma, gửi Claude:
+
+> Kiểm tra health và các session Figma của ZA Link. Báo tên file, chọn session đó rồi đọc selection hiện tại. Chưa chỉnh sửa thiết kế.
+
+Chỉ khi Claude đọc được selection mới xem là kết nối hoàn tất. Không có session hoặc `PLUGIN_NOT_CONNECTED` nghĩa là cần kết nối plugin. Các tool Figma cơ bản không cần skill nội bộ; workflow ZDS/Zinstant vẫn cần skill và thư viện project tương ứng.
+
+Đã kiểm tra ZIP macOS ARM64 tải từ public, checksum, JSON setup và bắt tay MCP stdio/liệt kê tool. Chưa nghiệm thu bằng tài khoản Claude mới hoặc giao diện Windows/Intel Mac.
